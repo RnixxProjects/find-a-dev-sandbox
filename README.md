@@ -1,2 +1,11 @@
-# find-a-dev-sandbox
-Find a dev: sandbox
+# 1. Установка проекта
+
+``` 
+make clone 
+```
+
+# 2. Создание образов
+
+```
+make up
+```
