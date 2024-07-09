@@ -1,0 +1,61 @@
+services:
+  web:
+    image: nginx:latest
+    restart: always
+    container_name: ${PROJECT_NAME_PREFIX}-web
+    ports:
+      - 80:80
+    volumes:
+      - ./docker/web/conf/site.conf:/etc/nginx/conf.d/site.conf
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - api
+  app:
+    build:
+      context: ./src/app
+      dockerfile: ./../../docker/app/Dockerfile
+    container_name: ${PROJECT_NAME_PREFIX}-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    volumes:
+      - "./src/app:/app"
+  api:
+    build:
+      context: ./src/api
+      dockerfile: ./../../docker/api/Dockerfile
+    container_name: ${PROJECT_NAME_PREFIX}-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    working_dir: /app
+    volumes:
+      - "./src/api:/app"
+    depends_on:
+      - postgres
+  bot:
+    build:
+      context: ./src/bot
+      dockerfile: ./../../docker/bot/Dockerfile
+    container_name: ${PROJECT_NAME_PREFIX}-bot
+    working_dir: /app
+    volumes:
+      - "./src/bot:/app"
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:latest
+    container_name: ${PROJECT_NAME_PREFIX}-database
+    volumes:
+      # Database volume
+      - ./data/postgres:/var/lib/postgresql/data
+      # Temp volume to allow using dumps
+      - ./docker/dev/postgres/dumps/:/tmp/
+    ports:
+      - 5432:5432
+    environment:
+      - LC_ALL=C.UTF-8
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
